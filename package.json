@@ -1,0 +1,28 @@
+{
+  "name": "voca-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "convert.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://ChalkPE@github.com/ChalkPE/voca-db.git"
+  },
+  "keywords": [
+    "voca",
+    "db"
+  ],
+  "author": "ChalkPE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChalkPE/voca-db/issues"
+  },
+  "homepage": "https://github.com/ChalkPE/voca-db#readme",
+  "dependencies": {
+    "glob": "^7.0.5",
+    "jsonfile": "^2.3.1",
+    "line-reader": "^0.4.0"
+  }
+}
