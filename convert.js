@@ -1,15 +1,12 @@
-var glob = require('glob');
-var jsonfile = require('jsonfile');
-var lineReader = require('line-reader');
-var MongoClient = require('mongodb').MongoClient;
-
-jsonfile.spaces = 4;
 const colName = 'days';
 
-let log = (...args) => console.log(new Date().toISOString(), ...args);
-let err = error => console.error(new Date().toISOString(), error);
+var glob = require('glob');
+var lineReader = require('line-reader');
 
-MongoClient.connect('mongodb://localhost:27017/voca', (err, db) => {
+let log = (...args) => console.log(new Date().toISOString(), ...args);
+let err = (error) => console.error(new Date().toISOString(), error);
+
+require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, db) => {
     if(err) return console.error(err);
     log("MongoClient.connect");
 
