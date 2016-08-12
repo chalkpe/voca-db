@@ -1,7 +1,4 @@
-const colName = 'days';
-
-var glob = require('glob');
-var lineReader = require('line-reader');
+var [colName, glob, lineReader] = ['days', require('glob'), require('line-reader')];
 
 let log = (...args) => console.log(new Date().toISOString(), ...args);
 let err = (error) => console.error(new Date().toISOString(), error);
@@ -35,7 +32,7 @@ require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, d
                         dayMap[day].words.push({ word, meaning, level });
 
                         if(last) col.insert(Object.keys(dayMap).map(k => dayMap[k]), (err, result) => {
-                            if(err) return console.log(err);
+                            if(err) return console.error(err);
                             log("col.insert", colName, bookName, result.insertedCount);
                         });
                     });
