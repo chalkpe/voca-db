@@ -45,7 +45,10 @@ require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, d
                                         if(err) return error(err);
                                         log(`fs.readFile`, bookId);
 
-                                        books.insert({ id: bookId, name: names[bookId], image: 'data:image/jpeg;base64,' + new Buffer(data).toString('base64') }, (err, result) => {
+                                        let count = result.insertedCount;
+                                        let image = 'data:image/jpeg;base64,' + new Buffer(data).toString('base64');
+
+                                        books.insert({ id: bookId, name: names[bookId], count, image }, (err, result) => {
                                             if(err) return error(err);
                                             log(`books.insert`, bookId, result.insertedCount);
                                         });
