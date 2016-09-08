@@ -1,7 +1,9 @@
-var [fs, glob, lineReader, names] = [require('fs'), require('glob'), require('line-reader'), require('./names.json')];
+/* jshint node: true, esversion: 6 */
+
+let [fs, glob, lineReader, names] = ['fs', 'glob', 'line-reader', './names.json'].map(p => require(p));
 
 let log = (...args) => console.log(new Date().toISOString(), ...args);
-let err = (error) => console.error(new Date().toISOString(), error);
+let error = (error) => console.error(new Date().toISOString(), error);
 
 require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, db) => {
     if(err) return error(err);
