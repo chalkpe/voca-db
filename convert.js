@@ -35,9 +35,9 @@ require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, d
 
                             lineReader.eachLine(file, { encoding: 'utf8' }, (line, last) => {
                                 let data = line.split(';').map(v => v.substring(1, v.length - 1));
-                                let [day, word, meaning, level] = [parseInt(data[1], 10), data[2], data[3], parseInt(data[4], 10)];
+                                let [dayId, wordId, meaning, level] = [parseInt(data[1], 10), data[2].trim().toLowerCase(), data[3].trim(), parseInt(data[4], 10)];
 
-                                (dayMap[day] = dayMap[day] || { book: bookId, day, words: [] }).words.push({ word, meaning, level });
+                                (dayMap[dayId] = dayMap[dayId] || { book: bookId, id: dayId, words: [] }).words.push({ id: wordId, meaning, level });
 
                                 if(last) days.insert(Object.keys(dayMap).map(k => dayMap[k]), (err, result) => {
                                     if(err) return error(err);
