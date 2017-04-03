@@ -69,7 +69,7 @@ async function convert () {
     log(`readline.each`, file)
 
     // 책의 모든 회차를 DB에 집어넣습니다.
-    const { insertedCount: count } = await days.insert(dayMap.values())
+    const { insertedCount: count } = await days.insert([...dayMap.values()])
     log(`days.insert`, bookId, count)
 
     // 책 커버 이미지를 base64로 인코딩합니다.
