@@ -74,7 +74,7 @@ async function convert () {
 
     // 책 커버 이미지를 base64로 인코딩합니다.
     const buffer = new Buffer(await fs.readFile(`img/${bookId}.jpg`))
-    const image = 'data:image/jpegbase64,' + buffer.toString('base64')
+    const image = 'data:image/jpeg;base64,' + buffer.toString('base64')
     log(`fs.readFile`, bookId, buffer.length)
 
     // 책 객체를 만들어서 리턴합니다.
