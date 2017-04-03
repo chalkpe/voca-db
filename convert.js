@@ -1,66 +1,67 @@
-/* jshint node: true, esversion: 6 */
+import Promise from 'bluebird'
 
-let [fs, glob, lineReader, names] = ['fs', 'glob', 'line-reader', './names.json'].map(p => require(p));
+import { fs } from 'mz'
+import glob from 'glob-promise'
+import readline from 'readline-promise'
 
-let log = (...args) => console.log(new Date().toISOString(), ...args);
-let error = (error) => console.error(new Date().toISOString(), error);
+import names from './names'
+import { MongoClient } from 'mongodb'
 
-require('mongodb').MongoClient.connect('mongodb://localhost:27017/voca', (err, db) => {
-    if(err) return error(err);
-    log(`MongoClient.connect`);
+let log = (...args) => console.log(new Date().toISOString(), ...args)
+let error = (error) => console.error(new Date().toISOString(), error)
 
-    db.createCollection('books', (err, books) => {
-        if(err) return error(err);
-        log(`db.createCollection`, `books`);
+async function convert () {
+  const db = await MongoClient.connect('mongodb://localhost:27017/voca')
+  log(`MongoClient.connect`)
 
-        books.deleteMany({}, (err, result) => {
-            if(err) return error(err);
-            log(`books.deleteMany`);
+  const [books, days] = await Promise.map(['books', 'days'], async (name) => {
+    const col = await db.createCollection(name)
+    log(`db.createCollection`, name)
 
-            db.createCollection('days', (err, days) => {
-                if(err) return error(err);
-                log(`db.createCollection`, `days`);
+    await col.deleteMany({})
+    log(`col.deleteMany`, name)
 
-                days.deleteMany({}, (err, result) => {
-                    if(err) return error(err);
-                    log(`days.deleteMany`);
+    return col
+  })
 
-                    glob('csv/*.csv', (err, files) => {
-                        if(err) return error(err);
-                        log(`glob`, files.join());
+  const files = await glob('csv/*.csv')
+  log(`glob`, files.join())
 
-                        files.forEach(file => {
-                            log(`files.forEach`, file);
-                            let dayMap = {}, bookId = file.replace(/(csv|\.|\/)/g, '');
+  await Promise.map(files, async (file) => {
+    let dayMap = {}
+    let bookId = file.replace(/(csv|\.|\/)/g, '')
 
-                            lineReader.eachLine(file, { encoding: 'utf8' }, (line, last) => {
-                                let data = line.split(';').map(v => v.substring(1, v.length - 1));
-                                let [dayId, wordId, meaning, level] = [parseInt(data[1], 10), data[2].trim().toLowerCase(), data[3].trim(), parseInt(data[4], 10)];
+    let reader = readline.createInterface({
+      terminal: false, input: fs.createReadStream(file) })
 
-                                (dayMap[dayId] = dayMap[dayId] || { book: bookId, id: dayId, words: [] }).words.push({ id: wordId, meaning, level });
+    await reader.each(line => {
+      let data = line.split(';').map(v => v.substring(1, v.length - 1))
+      let [dayId, wordId, meaning, level] = [
+        parseInt(data[1], 10),
+        data[2].trim().toLowerCase(),
+        data[3].trim(),
+        parseInt(data[4], 10)
+      ]
 
-                                if(last) days.insert(Object.keys(dayMap).map(k => dayMap[k]), (err, result) => {
-                                    if(err) return error(err);
-                                    log(`days.insert`, bookId, result.insertedCount);
+      dayMap[dayId] = dayMap[dayId] || { book: bookId, id: dayId, words: [] }
+      dayMap[dayId].words.push({ id: wordId, meaning, level })
+    })
+    log(`readline.each`, file)
 
-                                    fs.readFile(`img/${bookId}.jpg`, (err, data) => {
-                                        if(err) return error(err);
-                                        log(`fs.readFile`, bookId);
+    const { insertedCount: count } = await days.insert(Object.values(dayMap))
+    log(`days.insert`, bookId, count)
 
-                                        let count = result.insertedCount;
-                                        let image = 'data:image/jpeg;base64,' + new Buffer(data).toString('base64');
+    const image = 'data:image/jpegbase64,' +
+      new Buffer(await fs.readFile(`img/${bookId}.jpg`)).toString('base64')
 
-                                        books.insert({ id: bookId, name: names[bookId], count, image }, (err, result) => {
-                                            if(err) return error(err);
-                                            log(`books.insert`, bookId, result.insertedCount);
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
+    log(`fs.readFile`, bookId)
+
+    const res = await books.insert({ id: bookId, name: names[bookId], count, image })
+    log(`books.insert`, bookId, res.insertedCount)
+  })
+
+  await db.close()
+  console.log('Everything done!')
+}
+
+try { convert() } catch (e) { error(e) }
