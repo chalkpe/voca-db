@@ -68,8 +68,11 @@ async function convert () {
     })
     log(`readline.each`, file)
 
+    const values = [...dayMap.values()]
+    const totalWords = values.map(v => v.words.length).reduce((a, b) => a + b)
+
     // 책의 모든 회차를 DB에 집어넣습니다.
-    const { insertedCount: count } = await days.insert([...dayMap.values()])
+    const { insertedCount: count } = await days.insert(values)
     log(`days.insert`, bookId, count)
 
     // 책 커버 이미지를 base64로 인코딩합니다.
@@ -78,7 +81,7 @@ async function convert () {
     log(`fs.readFile`, bookId, buffer.length)
 
     // 책 객체를 만들어서 리턴합니다.
-    return { id: bookId, name: names[bookId], count, image }
+    return { id: bookId, name: names[bookId], count, totalWords, image }
   })
 
   // 책 정보를 DB에 집어넣습니다.
